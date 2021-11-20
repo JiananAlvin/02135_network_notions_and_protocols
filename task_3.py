@@ -30,36 +30,25 @@ def temp_c(data):
         temp -= 256.0
     return temp
 
-info = {machine.Pin(12, machine.Pin.IN) : machine.Pin(12, machine.Pin.IN).value(),
-        machine.Pin(13, machine.Pin.IN) : machine.Pin(13, machine.Pin.IN).value(),
-        "Temperature sensor" : temp(data)
-        }
 
-def json_info(line):
-    if b'/pins' in line:
-        if b'/pins/Pin(12)' in line:
-            response = json.dumps(info[machine.Pin(12, machine.Pin.IN)])
-        elif b'/pins/Pin(13)' in line:
-            response = json.dumps(info[machine.Pin(13, machine.Pin.IN)])
-        else:
-            response = json.dumps(pins)
-    elif b'/sensors' in line:
-        if b'/sensors/"Temperature sensor"' in line:
-            response = json.dumps(info["Temperature sensor"])
-        else:
-            response = json.dumps("Temperature sensor")
-    return response
+# Creates HTML-based web pages
+html = """<!DOCTYPE html>
+<html>
+    <head> <title>ESP32 Pins</title> </head>
+    <body> <h1>ESP32 Pins</h1>
+        <table border="1"> <tr><th>Pin</th><th>Value</th></tr> %s </table>
+    </body>
+</html>
+"""
 
-
-# # Creates a HTML-based web page, that reports the status of the pins
-# html = """<!DOCTYPE html>
-# <html>
-#     <head> <title>ESP32 Pins</title> </head>
-#     <body> <h1>ESP32 Pins</h1>
-#         <table border="1"> <tr><th>Pin</th><th>Value</th></tr> %s </table>
-#     </body>
-# </html>
-# """
+html2 = """<!DOCTYPE html>
+<html>
+    <head> <title>ESP32 Pins</title> </head>
+    <body> 
+        %s
+    </body>
+</html>
+"""
 
 # Get tuple address format for socket module
 # 0.0.0.0 means "all IPv4 addresses on the local machine", 80 is the port number
@@ -67,8 +56,7 @@ addr = socket.getaddrinfo('0.0.0.0', 80)[0][-1]
 
 s = socket.socket()  # Creating a socket object
 s.bind(addr)  # Bind the socket to above IP and port number
-s.listen(
-    1)  # The maximum number of queued connections, before the server starts to accept connection request from client
+s.listen(1)  # The maximum number of queued connections, before the server starts to accept connection request from client
 
 print('listening on', addr)  # Print server address
 
@@ -78,22 +66,47 @@ while True:
                            # addr is the (IP, port) bound to the client
     print('client connected from', addr)  # Print client address
     cl_file = cl.makefile('rwb', 0)  # Create a file associated with the socket "cl", which recieves the requests from the client
+    get_request = cl_file.readline().decode('ascii')  # The first line is b'Get /path HTTP/1.1\r\n', and convert it to normal python string
+    print(get_request)
+    try:
+        path = get_request.split()[1]  # split 'get_request' by whitespace, and get the resource path
+    except:
+        break
+    # Make every path end in '/'
+    if path[-1] != '/':
+        path = path + '/'
+    # read the other information in the request
     while True:
         line = cl_file.readline()  # Read the requests from the client
-        # print(line)
+        print(line)
         if not line or line == b'\r\n':
             break
-    print(line)
 
-    # ***Each row in [Pin|Value]
-    # 'row_button' is a list containing each element '<tr><td>Pin(button_i)</td><td>Button Status</td></tr>'
-    # 'row_temp' is a list containing each element '<tr><td>Temperature</td>Value<td></td></tr>'
-    # row_button = ['<tr><td> %s </td><td> %d </td></tr>' % (str(p) + '(button)', p.value()) for p in pins]
-    # sensor.readfrom_mem_into(address, temp_reg, data)
-    # row_temp = ['<tr><td> %s </td><td> %d </td></tr>' % ('temperature(Celsius)', temp_c(data))]
-    # response = html % ('\n'.join(row_button) + '\n'.join(row_temp))  # join each element with the new line character '\n',
-    #                                                                  # and then pass the joint string to 'html'
-    cl.send(json_info(line))  # Send 'html' on the socket 'cl'
+    sensor.readfrom_mem_into(address, temp_reg, data)
+    # ***A simple request–response message system: {resources path: resources content}
+    api = {"/pins/": json.dumps(["pin12", "pin13"]),
+           "/pins/pin12/": json.dumps(machine.Pin(12, machine.Pin.IN).value()),
+           "/pins/pin13/": json.dumps(machine.Pin(13, machine.Pin.IN).value()),
+           "/sensors/": json.dumps(["temperature_sensor"]),
+           "/sensors/temperature_sensor/": json.dumps(temp_c(data))}
+
+    # If no path specified, return full information
+    if path == '/':
+        # ***Each row in [Pin|Value]
+        # 'row_button' is a list containing each element '<tr><td>Pin(button_i)</td><td>Button Status</td></tr>'
+        # 'row_temp' is a list containing each element '<tr><td>Temperature</td>Value<td></td></tr>'
+        row_button = ['<tr><td> %s </td><td> %d </td></tr>' % (str(p) + '(button)', p.value()) for p in pins]
+        row_temp = ['<tr><td> %s </td><td> %d </td></tr>' % ('temperature(Celsius)', temp_c(data))]
+        response = html % ('\n'.join(row_button) + '\n'.join(row_temp))  # join each element with the new line character '\n',
+                                                                         # and then pass the joint string to 'html'
+    # match request with response based on api map
+    else:
+        try:
+            response = html2 % api[path]
+        except:
+            response = html2 % "404 NOT FOUND"  # If no such path, return "404 NOT FOUND"
+
+    cl.send(response)  # Send 'html' on the socket 'cl'
     cl.close()  # Close the connection
 
 

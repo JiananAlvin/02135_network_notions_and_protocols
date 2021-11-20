@@ -46,8 +46,7 @@ addr = socket.getaddrinfo('0.0.0.0', 80)[0][-1]
 
 s = socket.socket()  # Creating a socket object
 s.bind(addr)  # Bind the socket to above IP and port number
-s.listen(
-    1)  # The maximum number of queued connections, before the server starts to accept connection request from client
+s.listen(1)  # The maximum number of queued connections, before the server starts to accept connection request from client
 
 print('listening on', addr)  # Print server address
 
@@ -67,11 +66,9 @@ while True:
     # ***Each row in [Pin|Value]
     # 'row_button' is a list containing each element '<tr><td>Pin(button_i)</td><td>Button Status</td></tr>'
     # 'row_temp' is a list containing each element '<tr><td>Temperature</td>Value<td></td></tr>'
-    # for p in pins:
-    #     print(p.value())
-    row_button = ['<tr><td> %s </td><td> %d </td></tr>' % (str(p) + '(button)', p.value()) for p in pins]
+    row_button = ['<tr><td> %s </td><td> %d </td></tr>' % (str(p) + ' (button)', p.value()) for p in pins]
     sensor.readfrom_mem_into(address, temp_reg, data)
-    row_temp = ['<tr><td> %s </td><td> %d </td></tr>' % ('temperature(Celsius)', temp_c(data))]
+    row_temp = ['<tr><td> %s </td><td> %d </td></tr>' % ('Temperature(Celsius)', temp_c(data))]
     response = html % ('\n'.join(row_button) + '\n'.join(row_temp))  # join each element with the new line character '\n',
                                                                      # and then pass the joint string to 'html'
     cl.send(response)  # Send 'html' on the socket 'cl'
