@@ -9,20 +9,20 @@ ap.active(True)  # Activate access point
 ap.config(essid='ESP32-JRS')  # The name of the access point
 ap.config(authmode=3, password='jjjrrrsss')  # Password needed to connect
 
-# ***Defining the input pins used
+# Defining the input pins used
 button1 = machine.Pin(12, machine.Pin.IN, machine.Pin.PULL_UP)
 button2 = machine.Pin(13, machine.Pin.IN, machine.Pin.PULL_UP)
 sensor = machine.I2C(scl=machine.Pin(22), sda=machine.Pin(23))
 pins = [machine.Pin(i, machine.Pin.IN) for i in (12, 13)]
 
-# ***Define a few variables that hold the device and register address values
+# Define a few variables that hold the device and register address values
 address = 24
 temp_reg = 5
 res_reg = 8
 data = bytearray(2)
 
 
-# ***Sensor reading data transformed to degrees celsius
+# Sensor reading data transformed to degrees celsius
 def temp_c(data):
     value = data[0] << 8 | data[1]
     temp = (value & 0xFFF) / 16.0
@@ -33,15 +33,6 @@ def temp_c(data):
 
 # Creates HTML-based web pages
 html = """<!DOCTYPE html>
-<html>
-    <head> <title>ESP32 Pins</title> </head>
-    <body> <h1>ESP32 Pins</h1>
-        <table border="1"> <tr><th>Pin</th><th>Value</th></tr> %s </table>
-    </body>
-</html>
-"""
-
-html2 = """<!DOCTYPE html>
 <html>
     <head> <title>ESP32 Pins</title> </head>
     <body> 
@@ -92,19 +83,13 @@ while True:
 
     # If no path specified, return full information
     if path == '/':
-        # ***Each row in [Pin|Value]
-        # 'row_button' is a list containing each element '<tr><td>Pin(button_i)</td><td>Button Status</td></tr>'
-        # 'row_temp' is a list containing each element '<tr><td>Temperature</td>Value<td></td></tr>'
-        row_button = ['<tr><td> %s </td><td> %d </td></tr>' % (str(p) + '(button)', p.value()) for p in pins]
-        row_temp = ['<tr><td> %s </td><td> %d </td></tr>' % ('temperature(Celsius)', temp_c(data))]
-        response = html % ('\n'.join(row_button) + '\n'.join(row_temp))  # join each element with the new line character '\n',
-                                                                         # and then pass the joint string to 'html'
+        response = html % json.dumps(api)
     # match request with response based on api map
     else:
         try:
-            response = html2 % api[path]
+            response = html % api[path]
         except:
-            response = html2 % "404 NOT FOUND"  # If no such path, return "404 NOT FOUND"
+            response = html % "404 NOT FOUND"  # If no such path, return "404 NOT FOUND"
 
     cl.send(response)  # Send 'html' on the socket 'cl'
     cl.close()  # Close the connection
