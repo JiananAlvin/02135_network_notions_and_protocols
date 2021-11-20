@@ -83,11 +83,11 @@ while True:
 
     # If no path specified, return full information
     if path == '/':
-        response = html % json.dumps(api)
+        response = json.dumps(api)
     # match request with response based on api map
     else:
         try:
-            response = html % api[path]
+            response = api[path]
         except:
             response = html % "404 NOT FOUND"  # If no such path, return "404 NOT FOUND"
 
