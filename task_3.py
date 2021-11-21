@@ -35,11 +35,12 @@ def temp_c(data):
 html = """<!DOCTYPE html>
 <html>
     <head> <title>ESP32 Pins</title> </head>
-    <body> 
-        %s
+    <body> <h1>ESP32 Pins</h1>
+        <table border="1"> <tr><th>Pin</th><th>Value</th></tr> %s </table>
     </body>
 </html>
 """
+
 
 # Get tuple address format for socket module
 # 0.0.0.0 means "all IPv4 addresses on the local machine", 80 is the port number
@@ -83,13 +84,20 @@ while True:
 
     # If no path specified, return full information
     if path == '/':
-        response = json.dumps(api)
+        # ***Each row in [Pin|Value]
+        # 'row_button' is a list containing each element '<tr><td>Pin(button_i)</td><td>Button Status</td></tr>'
+        # 'row_temp' is a list containing each element '<tr><td>Temperature</td>Value<td></td></tr>'
+        row_button = ['<tr><td> %s </td><td> %d </td></tr>' % (str(p) + ' (button)', p.value()) for p in pins]
+        sensor.readfrom_mem_into(address, temp_reg, data)
+        row_temp = ['<tr><td> %s </td><td> %f </td></tr>' % ('Temperature(Celsius)', temp_c(data))]
+        response = html % ('\n'.join(row_button) + '\n'.join(row_temp))  # join each element with the new line character '\n',
+                                                                         # and then pass the joint string to 'html'
     # match request with response based on api map
     else:
         try:
-            response = api[path]
+            response = "HTTP/1.1 200 OK\r\n" + "\r\n" + api[path]
         except:
-            response = html % "404 NOT FOUND"  # If no such path, return "404 NOT FOUND"
+            response = "HTTP/1.1 404 Not Found"  # If no such path, return "404 NOT FOUND"
 
     cl.send(response)  # Send 'html' on the socket 'cl'
     cl.close()  # Close the connection

@@ -68,7 +68,7 @@ while True:
     # 'row_temp' is a list containing each element '<tr><td>Temperature</td>Value<td></td></tr>'
     row_button = ['<tr><td> %s </td><td> %d </td></tr>' % (str(p) + ' (button)', p.value()) for p in pins]
     sensor.readfrom_mem_into(address, temp_reg, data)
-    row_temp = ['<tr><td> %s </td><td> %d </td></tr>' % ('Temperature(Celsius)', temp_c(data))]
+    row_temp = ['<tr><td> %s </td><td> %f </td></tr>' % ('Temperature(Celsius)', temp_c(data))]
     response = html % ('\n'.join(row_button) + '\n'.join(row_temp))  # join each element with the new line character '\n',
                                                                      # and then pass the joint string to 'html'
     cl.send(response)  # Send 'html' on the socket 'cl'
