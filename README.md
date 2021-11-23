@@ -1,5 +1,6 @@
 # 02135_network_notions_and_protocols
-```├───.idea
+```
+├───.idea
 │   └───inspectionProfiles
 ├───task1
 ├───task2
