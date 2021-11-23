@@ -2,6 +2,7 @@ import machine  # Import the machine package
 import network  # Import the network package
 import socket  # Import the socket package
 import json  # Import the json package
+import neopixel
 
 # Create a WLAN access point
 ap = network.WLAN(network.AP_IF)
@@ -14,6 +15,31 @@ button1 = machine.Pin(12, machine.Pin.IN, machine.Pin.PULL_UP)
 button2 = machine.Pin(13, machine.Pin.IN, machine.Pin.PULL_UP)
 sensor = machine.I2C(scl=machine.Pin(22), sda=machine.Pin(23))
 pins = [machine.Pin(i, machine.Pin.IN) for i in (12, 13)]
+# ***Defining the output pins used
+led_red = machine.Pin(25, machine.Pin.OUT)
+led_green = machine.Pin(26, machine.Pin.OUT)
+np = neopixel.NeoPixel(machine.Pin(21), 1)
+np[0] = (0, 0, 0)
+np.write()
+
+# *** handling the PUT request i.e. control LEDs
+def handle_put(mode):
+    if mode == 'on_yellow':
+        led_red.value(0)
+        led_green.value(1)
+        global np
+        np[0] = (178, 80, 0)
+    elif mode == 'on_purple':
+        led_red.value(0)
+        led_green.value(1)
+        global np
+        np[0] = (0, 80, 178)
+    else:
+        led_red.value(1)
+        led_green.value(0)
+        global np
+        np[0] = (0, 0, 0)
+    np.write()
 
 # Define a few variables that hold the device and register address values
 address = 24
@@ -61,21 +87,28 @@ while True:
     get_request = cl_file.readline().decode('ascii')  # The first line is b'Get /path HTTP/1.1\r\n', and convert it to normal python string
     print(get_request)
     try:
+        request = get_request.split()[0]
         path = get_request.split()[1]  # split 'get_request' by whitespace, and get the resource path
     except:
         break
-    # Make every path end in '/'
-    if path[-1] != '/':
-        path = path + '/'
+    # Distinguish the types of requests, GET or PUT
+    if request == 'PUT':
+        handle_put(path.split('/')[-1])
+        continue
+    else:
+        pass
     # read the other information in the request
     while True:
         line = cl_file.readline()  # Read the requests from the client
         print(line)
         if not line or line == b'\r\n':
             break
+    # Make every path end in '/'
+    if path[-1] != '/':
+        path = path + '/'
 
     sensor.readfrom_mem_into(address, temp_reg, data)
-    # ***A simple request–response message system: {resources path: resources content}
+    # A simple request–response message system: {resources path: resources content}
     api = {"/pins/": json.dumps(["pin12", "pin13"]),
            "/pins/pin12/": json.dumps(machine.Pin(12, machine.Pin.IN).value()),
            "/pins/pin13/": json.dumps(machine.Pin(13, machine.Pin.IN).value()),
