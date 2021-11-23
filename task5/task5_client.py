@@ -2,19 +2,23 @@
 from consolemenu import *
 from consolemenu.items import *
 import requests
+import json
+
 
 ################### define functions
 def master_switch():
     try:
         print("requesting server... master switch")
-        requests.get("http://192.168.4.1/pins/pin12")
+        pin13 = requests.get("http://192.168.4.1/pins/pin13")
+        print("The status of master switch is: {}".format(pin13.json()))
     except:
         print("request failed!")
 
 def color_switch ():
     try:
         print("requesting server... color switch ")
-        requests.get("http://192.168.4.1/pins/pin13")
+        pin12 = requests.get("http://192.168.4.1/pins/pin12")
+        print("The status of color switch is: {}".format(pin12.json()))
     except:
         print("request failed!")
 def on_purple():

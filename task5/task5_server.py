@@ -94,6 +94,8 @@ while True:
     # Distinguish the types of requests, GET or PUT
     if request == 'PUT':
         handle_put(path.split('/')[-1])
+        cl.send('HTTP/1.1 200 OK\r\n')
+        cl.close()
         continue
     else:
         pass
