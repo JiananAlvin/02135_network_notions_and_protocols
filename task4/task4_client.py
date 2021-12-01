@@ -34,7 +34,7 @@ time_data = np.array(data.Time, dtype=float)
 temperature_data = np.array(data.Temperature, dtype=float)
 # Plot temperature vs. time
 plt.plot(time_data, temperature_data)
-plt.ylim([23, 32])
+plt.ylim([22, 29])
 plt.xlabel("Time(s)")
 plt.ylabel(u"Temperature(\u00B0C)")
 plt.title("Temperature over 10s")

@@ -77,7 +77,7 @@ while True:
             break
 
     sensor.readfrom_mem_into(address, temp_reg, data)
-    # ***A simple request–response message system: {resources path: resources content}
+    # ***A simple request–response messages system: {resources path: resources content}
     api = {"/pins/": json.dumps(["pin12", "pin13"]),
            "/pins/pin12/": json.dumps(machine.Pin(12, machine.Pin.IN).value()),
            "/pins/pin13/": json.dumps(machine.Pin(13, machine.Pin.IN).value()),
