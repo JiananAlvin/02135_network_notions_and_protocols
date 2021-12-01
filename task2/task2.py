@@ -58,9 +58,7 @@ while True:
     cl_file = cl.makefile('rwb', 0)  # Create a file associated with the socket "cl", which recieves the requests from the client
     while True:
         line = cl_file.readline()  # Read the requests from the client
-        print('START')
-        print(line)
-        print('END')
+        # print(line)
         if not line or line == b'\r\n':
             break
     # ***Each row in [Pin|Value]

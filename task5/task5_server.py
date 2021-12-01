@@ -99,7 +99,7 @@ while True:
         continue
     else:
         pass
-    # read the other information in the request
+    # Read the other information in the request
     while True:
         line = cl_file.readline()  # Read the requests from the client
         print(line)
@@ -127,7 +127,7 @@ while True:
         row_temp = ['<tr><td> %s </td><td> %f </td></tr>' % ('Temperature(Celsius)', temp_c(data))]
         response = html % ('\n'.join(row_button) + '\n'.join(row_temp))  # join each element with the new line character '\n',
                                                                          # and then pass the joint string to 'html'
-    # match request with response based on api map
+    # Match request with response based on api map
     else:
         try:
             response = "HTTP/1.1 200 OK\r\n" + "\r\n" + api[path]
